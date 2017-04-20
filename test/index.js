@@ -3,6 +3,7 @@ const request = require('supertest');
 const r2base = require('r2base');
 const r2mongoose = require('r2mongoose');
 const r2inspector = require('r2inspector');
+const r2acl = require('r2acl');
 const r2middleware = require('r2middleware');
 const _ = require('underscore');
 const api = require('../index');
@@ -15,12 +16,14 @@ app.start()
   .serve(r2middleware, ['bodyParser'])
   .serve(r2mongoose, { database: 'r2test' })
   .serve(r2inspector)
+  .serve(r2acl)
   .load('model')
   .serve(api, 'Test', { route: '/api/o/test', model: 'test', jwt: { secret: '1234', expiresIn: 7 } })
   .local('lib/error.js')
   .into(app);
 
 const Test = app.service('Test');
+const Acl = app.service('Acl');
 // console.log(app.services);
 
 const invalidObj = {
@@ -99,7 +102,10 @@ const invalidObjUpdate = (errObj) => {
 };
 
 before((done) => {
-  done();
+  Acl.allow('guest', 'test', ['get', 'post', 'put', 'delete'])
+    .then(() => Acl.addUserRoles('guest', 'guest'))
+    .then(done)
+    .catch(done);
 });
 
 describe('r2api', () => {
@@ -430,6 +436,21 @@ describe('r2api', () => {
           expect(res.body.message.errors[0]).to.equal('token verification failed!');
           done();
         });
+    });
+  });
+
+  describe('acl middleware', () => {
+    it('should return guest user acl data', (done) => {
+      const req = { tokenData: { user: 'guest' }, method: 'get', query: {}, headers: {} };
+      const res = {};
+      Test.aclMiddleware('test')(req, res, () => {
+        try {
+          expect(req.aclData).to.deep.equal({ test: ['get', 'post', 'put', 'delete'] });
+          done();
+        } catch (e) {
+          done(e);
+        }
+      });
     });
   });
 });
