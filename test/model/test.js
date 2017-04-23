@@ -1,6 +1,7 @@
 module.exports = (app) => {
   const mongoose = app.service('Mongoose');
   const inspector = app.service('Inspector');
+  const query = app.service('Query');
   const ObjectId = mongoose.Schema.Types.ObjectId;
   const { Schema } = mongoose;
 
@@ -33,8 +34,15 @@ module.exports = (app) => {
     votes: { type: [votesSchema], arrOpts: { minLength: 2 } },
     testRef1: { type: ObjectId, ref: 'test' },
     testRef2: { type: ObjectId, ref: 'test' },
+    num1: { type: Number },
+    num2: { type: Number },
+    num3: { type: Number },
+    date1: { type: Date },
+    date2: { type: Date },
+    date3: { type: Date },
   });
 
+  schema.plugin(query.plugin);
   const model = mongoose.model('test', schema);
   inspector(mongoose, 'test');
   return model;

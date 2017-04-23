@@ -2,6 +2,7 @@ const chai = require('chai');
 const request = require('supertest');
 const r2base = require('r2base');
 const r2mongoose = require('r2mongoose');
+const r2query = require('r2query');
 const r2inspector = require('r2inspector');
 const r2acl = require('r2acl');
 const r2middleware = require('r2middleware');
@@ -15,6 +16,7 @@ const app = r2base({ baseDir: __dirname });
 app.start()
   .serve(r2middleware, ['bodyParser'])
   .serve(r2mongoose, { database: 'r2test' })
+  .serve(r2query)
   .serve(r2inspector)
   .serve(r2acl)
   .load('model')
@@ -451,6 +453,104 @@ describe('r2api', () => {
           done(e);
         }
       });
+    });
+  });
+
+  describe('api queries', () => {
+    before((done) => {
+      Test.post({ name: 'Project Title 1000', slug: 'params', num1: 1, num2: 200, isEnabled: 'n' })
+        .then(() => Test.post({ name: 'Project Title 1001', slug: 'params', num1: 2, num2: 404, isEnabled: 'y' }))
+        .then(() => Test.post({ name: 'Project Title 1002', slug: 'params', num1: 3, num2: 422, isEnabled: 'y' }))
+        .then(() => Test.post({ name: 'Project Title 1003', slug: 'params', num1: 4, num2: 200, isEnabled: 'n' }))
+        .then(() => Test.post({ name: 'Project Title 1004', slug: 'params', num1: 5, num2: 422, isEnabled: 'y' }))
+        .then(() => done())
+        .catch(() => done());
+    });
+
+    it('GET /api/o/test should return 200, query type = all', (done) => {
+      Test.post({ name: 'Project Title 100', slug: 'project-title-100' })
+        .then(() => {
+          request(app)
+            .get('/api/o/test?qType=all&slug=project-title-100')
+            .expect(200)
+            .end((err, res) => {
+              expect(res.body.name).to.equal('ok');
+              expect(res.body.code).to.equal(200);
+              expect(res.body.data[0].name).to.equal('Project Title 100');
+              expect(res.body.data[0].slug).to.equal('project-title-100');
+              done();
+            });
+        });
+    });
+
+    it('GET /api/o/test should return 200, query type = allTotal', (done) => {
+      Test.post({ name: 'Project Title 101', slug: 'project-title-101' })
+        .then(() => {
+          request(app)
+            .get('/api/o/test?qType=allTotal&slug=project-title-101')
+            .expect(200)
+            .end((err, res) => {
+              expect(res.body.name).to.equal('ok');
+              expect(res.body.code).to.equal(200);
+              expect(res.body.data.total).to.equal(1);
+              expect(res.body.data.rows[0].name).to.equal('Project Title 101');
+              expect(res.body.data.rows[0].slug).to.equal('project-title-101');
+              done();
+            });
+        });
+    });
+
+    it('GET /api/o/test should return 200, query type = one', (done) => {
+      Test.post({ name: 'Project Title 102', slug: 'project-title-102' })
+        .then(() => {
+          request(app)
+            .get('/api/o/test?qType=one&slug=project-title-102')
+            .expect(200)
+            .end((err, res) => {
+              expect(res.body.name).to.equal('ok');
+              expect(res.body.code).to.equal(200);
+              expect(res.body.data.name).to.equal('Project Title 102');
+              expect(res.body.data.slug).to.equal('project-title-102');
+              done();
+            });
+        });
+    });
+
+    it('GET /api/o/test should return 200, query type = total', (done) => {
+      Test.post({ name: 'Project Title 103', slug: 'project-title-103' })
+        .then(() => {
+          request(app)
+            .get('/api/o/test?qType=total&slug=project-title-103')
+            .expect(200)
+            .end((err, res) => {
+              expect(res.body.name).to.equal('ok');
+              expect(res.body.code).to.equal(200);
+              expect(res.body.data).to.equal(1);
+              done();
+            });
+        });
+    });
+
+    it('GET /api/o/test should return 200, query params = eq, gte, lt, in, ne', (done) => {
+      request(app)
+        .get('/api/o/test')
+        .query({
+          qType: 'allTotal',
+          slug: 'params',
+          'num1>=1': '',
+          'num1<5': '',
+          num2: '200,404',
+          'isEnabled!=y': '',
+        })
+        .expect(200)
+        .end((err, res) => {
+          expect(res.body.name).to.equal('ok');
+          expect(res.body.code).to.equal(200);
+          expect(res.body.data.total).to.equal(2);
+          expect(res.body.data.rows[0].name).to.equal('Project Title 1000');
+          expect(res.body.data.rows[1].name).to.equal('Project Title 1003');
+          done();
+        });
     });
   });
 });

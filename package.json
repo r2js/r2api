@@ -1,7 +1,7 @@
 {
   "name": "r2api",
   "description": "",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "author": "Selçuk Fatih Sevinç",
   "license": "MIT",
   "engines": {
@@ -28,6 +28,7 @@
     "r2inspector": "^1.0.5",
     "r2middleware": "^1.0.0",
     "r2mongoose": "^1.0.0",
+    "r2query": "^1.0.1",
     "supertest": "^3.0.0"
   },
   "main": "index.js",
