@@ -104,10 +104,13 @@ const invalidObjUpdate = (errObj) => {
 };
 
 before((done) => {
-  Acl.allow('guest', 'test', ['get', 'post', 'put', 'delete'])
-    .then(() => Acl.addUserRoles('guest', 'guest'))
-    .then(done)
-    .catch(done);
+  // wait for connection
+  app.service('Mongoose').connection.on('open', () => {
+    Acl.allow('guest', 'test', ['get', 'post', 'put', 'delete'])
+      .then(() => Acl.addUserRoles('guest', 'guest'))
+      .then(() => done())
+      .catch(() => done());
+  });
 });
 
 describe('r2api', () => {
