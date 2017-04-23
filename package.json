@@ -1,6 +1,6 @@
 {
   "name": "r2api",
-  "description": "",
+  "description": "REST API service for r2js. Create REST API endpoints from Mongoose models",
   "version": "1.0.3",
   "author": "Selçuk Fatih Sevinç",
   "license": "MIT",
@@ -35,7 +35,10 @@
   "readmeFilename": "README.md",
   "keywords": [
     "r2js",
-    "r2api"
+    "r2api",
+    "rest",
+    "api",
+    "mongoose"
   ],
   "scripts": {
     "test": "mocha"

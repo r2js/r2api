@@ -1,7 +1,7 @@
 <h1 align="center">r2api</h1>
 
 <div align="center">
-  <strong></strong>
+  <strong>r2api is a REST API service for r2js. Create REST API endpoints from Mongoose models</strong>
 </div>
 
 <br />
