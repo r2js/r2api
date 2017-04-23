@@ -20,7 +20,11 @@ app.start()
   .serve(r2inspector)
   .serve(r2acl)
   .load('model')
-  .serve(api, 'Test', { route: '/api/o/test', model: 'test', jwt: { secret: '1234', expiresIn: 7 } })
+  .serve(api, 'Test', {
+    route: '/api/o/test',
+    model: 'test',
+    jwt: { secret: '1234', expiresIn: 7 },
+  })
   .local('lib/error.js')
   .into(app);
 
@@ -194,7 +198,9 @@ describe('r2api', () => {
 
     it('should not update via invalid object', (done) => {
       Test.post({ name: 'Project Title A', slug: 'project-title-a' })
-        .then(data => Test.put(data.id, Object.assign(_.clone(invalidObj), { links: { web: 'test2.com' } })))
+        .then(data => Test.put(data.id, Object.assign(_.clone(invalidObj), {
+          links: { web: 'test2.com' },
+        })))
         .catch((err) => {
           invalidObjUpdate(err);
           done();
@@ -464,10 +470,18 @@ describe('r2api', () => {
   describe('api queries', () => {
     before((done) => {
       Test.post({ name: 'Project Title 1000', slug: 'params', num1: 1, num2: 200, isEnabled: 'n' })
-        .then(() => Test.post({ name: 'Project Title 1001', slug: 'params', num1: 2, num2: 404, isEnabled: 'y' }))
-        .then(() => Test.post({ name: 'Project Title 1002', slug: 'params', num1: 3, num2: 422, isEnabled: 'y' }))
-        .then(() => Test.post({ name: 'Project Title 1003', slug: 'params', num1: 4, num2: 200, isEnabled: 'n' }))
-        .then(() => Test.post({ name: 'Project Title 1004', slug: 'params', num1: 5, num2: 422, isEnabled: 'y' }))
+        .then(() => Test.post({
+          name: 'Project Title 1001', slug: 'params', num1: 2, num2: 404, isEnabled: 'y',
+        }))
+        .then(() => Test.post({
+          name: 'Project Title 1002', slug: 'params', num1: 3, num2: 422, isEnabled: 'y',
+        }))
+        .then(() => Test.post({
+          name: 'Project Title 1003', slug: 'params', num1: 4, num2: 200, isEnabled: 'n',
+        }))
+        .then(() => Test.post({
+          name: 'Project Title 1004', slug: 'params', num1: 5, num2: 422, isEnabled: 'y',
+        }))
         .then(() => done())
         .catch(() => done());
     });
