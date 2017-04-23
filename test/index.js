@@ -447,7 +447,9 @@ describe('r2api', () => {
       const res = {};
       Test.aclMiddleware('test')(req, res, () => {
         try {
-          expect(req.aclData).to.deep.equal({ test: ['get', 'post', 'put', 'delete'] });
+          expect(req.aclData.test).to.not.equal(undefined);
+          req.aclData.test.sort();
+          expect(req.aclData.test).to.deep.equal(['delete', 'get', 'post', 'put']);
           done();
         } catch (e) {
           done(e);
