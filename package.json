@@ -24,7 +24,7 @@
     "r2base": "^1.0.7",
     "r2middleware": "^1.0.0",
     "r2mongoose": "^1.0.1",
-    "r2query": "^1.0.2",
+    "r2query": "^1.0.3",
     "r2system": "^1.0.2",
     "supertest": "^3.0.0"
   },
