@@ -1,27 +1,23 @@
-const routes = require('./lib/routes');
-const authMiddleware = require('./lib/authMiddleware');
-const aclMiddleware = require('./lib/aclMiddleware');
-const log = require('debug')('r2:api');
+const libRoutes = require('./lib/routes');
+const libAuthMiddleware = require('./lib/authMiddleware');
+const libAclMiddleware = require('./lib/aclMiddleware');
 
 module.exports = function Api(app, options) {
-  const mongoose = app.service('Mongoose');
-  if (!mongoose) {
-    return log('service [Mongoose] not found!');
+  if (!app.hasServices('Mongoose')) {
+    return false;
   }
 
+  const mongoose = app.service('Mongoose');
   const { route, model, jwt } = options;
-  const getAuthMiddleware = authMiddleware(app, jwt);
-  const getAclMiddleware = aclMiddleware(app);
+  const authMiddleware = libAuthMiddleware(app, jwt);
+  const aclMiddleware = libAclMiddleware(app);
 
   if (route) {
-    routes(app)(mongoose.model(model), route, {
-      auth: getAuthMiddleware,
-      acl: getAclMiddleware,
+    libRoutes(app)(mongoose.model(model), route, {
+      auth: authMiddleware,
+      acl: aclMiddleware,
     });
   }
 
-  return {
-    authMiddleware: getAuthMiddleware,
-    aclMiddleware: getAclMiddleware,
-  };
+  return { authMiddleware, aclMiddleware };
 };
