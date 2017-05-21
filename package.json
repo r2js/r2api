@@ -33,9 +33,19 @@
   "keywords": [
     "r2js",
     "r2api",
+    "r2acl",
+    "r2base",
+    "r2middleware",
+    "r2mongoose",
+    "r2query",
+    "r2system",
     "rest",
     "api",
-    "mongoose"
+    "mongoose",
+    "auth",
+    "authentication",
+    "acl",
+    "authorization"
   ],
   "scripts": {
     "test": "mocha"
