@@ -11,10 +11,14 @@ const api = require('../index');
 const expect = chai.expect;
 process.chdir(__dirname);
 
-const app = r2base({ baseDir: __dirname });
+const testMiddleware = (req, res, next) => {
+  next();
+};
+
+const app = r2base();
 app.start()
-  .serve(r2middleware, ['bodyParser'])
-  .serve(r2mongoose, { database: 'r2test' })
+  .serve(r2middleware)
+  .serve(r2mongoose, { database: 'r2api' })
   .serve(r2query)
   .serve(r2acl)
   .serve(r2system)
@@ -23,6 +27,7 @@ app.start()
     route: '/api/o/test',
     model: 'test',
     jwt: { secret: '1234' },
+    beforeRoute: [testMiddleware]
   })
   .local('lib/error.js')
   .into(app);
@@ -49,16 +54,6 @@ before((done) => {
 });
 
 describe('r2api', () => {
-  describe('post', () => {
-    it('should save object', () => (
-      Test.saveNew({ name: 'Project Title', slug: 'project-title' })
-        .then((data) => {
-          expect(data.name).to.equal('Project Title');
-          expect(data.slug).to.equal('project-title');
-        })
-    ));
-  });
-
   describe('endpoints', () => {
     before((done) => {
       request.agent(app.server);
@@ -87,15 +82,15 @@ describe('r2api', () => {
           expect(res.body.name).to.equal('unprocessableEntity');
           expect(res.body.code).to.equal(422);
           expect(res.body.message.name).to.equal('ValidationError');
-          expect(res.body.message.errors.name.message).to.equal('The name field is required.');
-          expect(res.body.message.errors.email.message).to.equal('The email format is invalid.');
-          expect(res.body.message.errors.slug.message).to.equal('The slug field may only contain alpha-numeric characters, as well as dashes and underscores.');
+          expect(res.body.message.errors.name.message).to.equal('The Name field is required.');
+          expect(res.body.message.errors.email.message).to.equal('The E-mail format is invalid.');
+          expect(res.body.message.errors.slug.message).to.equal('The Slug field may only contain alpha-numeric characters, as well as dashes and underscores.');
           done();
         });
     });
 
     it('GET /api/o/test should return 200 via object id', (done) => {
-      Test.saveNew({ name: 'Project Title 7', slug: 'project-title-7' })
+      Test.create({ name: 'Project Title 7', slug: 'project-title-7' })
         .then((data) => {
           request(app)
             .get(`/api/o/test/${data.id}`)
@@ -111,7 +106,7 @@ describe('r2api', () => {
     });
 
     it('GET /api/o/test should return 200 with object data', (done) => {
-      Test.saveNew({ name: 'Project Title 8', slug: 'project-title-8' })
+      Test.create({ name: 'Project Title 8', slug: 'project-title-8' })
         .then(() => {
           request(app)
             .get('/api/o/test?qType=all&slug=project-title-8')
@@ -138,7 +133,7 @@ describe('r2api', () => {
     });
 
     it('PUT /api/o/test should return 200', (done) => {
-      Test.saveNew({ name: 'Project Title 9', slug: 'project-title-9' })
+      Test.create({ name: 'Project Title 9', slug: 'project-title-9' })
         .then((data) => {
           request(app)
             .put(`/api/o/test/${data.id}`)
@@ -166,23 +161,23 @@ describe('r2api', () => {
     });
 
     it('PUT /api/o/test should return 422 via invalid object', (done) => {
-      Test.saveNew({ name: 'Project Title B1', slug: 'project-title-b1' })
+      Test.create({ name: 'Project Title B1', slug: 'project-title-b1' })
         .then((data) => {
           request(app)
             .put(`/api/o/test/${data.id}`)
             .send(invalidObj)
             .expect(422)
             .end((err, res) => {
-              expect(res.body.message.errors.name.message).to.equal('The name field is required.');
-              expect(res.body.message.errors.email.message).to.equal('The email format is invalid.');
-              expect(res.body.message.errors.slug.message).to.equal('The slug field may only contain alpha-numeric characters, as well as dashes and underscores.');
+              expect(res.body.message.errors.name.message).to.equal('The Name field is required.');
+              expect(res.body.message.errors.email.message).to.equal('The E-mail format is invalid.');
+              expect(res.body.message.errors.slug.message).to.equal('The Slug field may only contain alpha-numeric characters, as well as dashes and underscores.');
               done();
             });
         });
     });
 
     it('DELETE /api/o/test should return 204', (done) => {
-      Test.saveNew({ name: 'Project Title 10', slug: 'project-title-10' })
+      Test.create({ name: 'Project Title 10', slug: 'project-title-10' })
         .then((data) => {
           request(app)
             .delete(`/api/o/test/${data.id}`)
@@ -271,17 +266,17 @@ describe('r2api', () => {
 
   describe('api queries', () => {
     before((done) => {
-      Test.saveNew({ name: 'Project Title 1000', slug: 'params', num1: 1, num2: 200, isEnabled: 'n' })
-        .then(() => Test.saveNew({
+      Test.create({ name: 'Project Title 1000', slug: 'params', num1: 1, num2: 200, isEnabled: 'n' })
+        .then(() => Test.create({
           name: 'Project Title 1001', slug: 'params', num1: 2, num2: 404, isEnabled: 'y',
         }))
-        .then(() => Test.saveNew({
+        .then(() => Test.create({
           name: 'Project Title 1002', slug: 'params', num1: 3, num2: 422, isEnabled: 'y',
         }))
-        .then(() => Test.saveNew({
+        .then(() => Test.create({
           name: 'Project Title 1003', slug: 'params', num1: 4, num2: 200, isEnabled: 'n',
         }))
-        .then(() => Test.saveNew({
+        .then(() => Test.create({
           name: 'Project Title 1004', slug: 'params', num1: 5, num2: 422, isEnabled: 'y',
         }))
         .then(() => done())
@@ -289,7 +284,7 @@ describe('r2api', () => {
     });
 
     it('GET /api/o/test should return 200, query type = all', (done) => {
-      Test.saveNew({ name: 'Project Title 100', slug: 'project-title-100' })
+      Test.create({ name: 'Project Title 100', slug: 'project-title-100' })
         .then(() => {
           request(app)
             .get('/api/o/test?qType=all&slug=project-title-100')
@@ -305,7 +300,7 @@ describe('r2api', () => {
     });
 
     it('GET /api/o/test should return 200, query type = allTotal', (done) => {
-      Test.saveNew({ name: 'Project Title 101', slug: 'project-title-101' })
+      Test.create({ name: 'Project Title 101', slug: 'project-title-101' })
         .then(() => {
           request(app)
             .get('/api/o/test?qType=allTotal&slug=project-title-101')
@@ -322,7 +317,7 @@ describe('r2api', () => {
     });
 
     it('GET /api/o/test should return 200, query type = one', (done) => {
-      Test.saveNew({ name: 'Project Title 102', slug: 'project-title-102' })
+      Test.create({ name: 'Project Title 102', slug: 'project-title-102' })
         .then(() => {
           request(app)
             .get('/api/o/test?qType=one&slug=project-title-102')
@@ -338,7 +333,7 @@ describe('r2api', () => {
     });
 
     it('GET /api/o/test should return 200, query type = total', (done) => {
-      Test.saveNew({ name: 'Project Title 103', slug: 'project-title-103' })
+      Test.create({ name: 'Project Title 103', slug: 'project-title-103' })
         .then(() => {
           request(app)
             .get('/api/o/test?qType=total&slug=project-title-103')
