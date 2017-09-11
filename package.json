@@ -1,7 +1,7 @@
 {
   "name": "r2api",
   "description": "REST API service for r2js. Create REST API endpoints from Mongoose models",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "author": "Selçuk Fatih Sevinç",
   "license": "MIT",
   "engines": {
@@ -24,7 +24,7 @@
     "r2base": "^1.0.11",
     "r2middleware": "^1.0.2",
     "r2mongoose": "^1.0.3",
-    "r2query": "^1.0.5",
+    "r2query": "^1.0.8",
     "r2system": "^1.0.5",
     "supertest": "^3.0.0"
   },
