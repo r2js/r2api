@@ -26,7 +26,6 @@ app.start()
   .serve(api, 'TestApi', {
     route: '/api/o/test',
     model: 'test',
-    jwt: { secret: '1234' },
     beforeRoute: [testMiddleware]
   })
   .local('lib/error.js')
