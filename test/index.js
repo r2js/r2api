@@ -53,6 +53,19 @@ before((done) => {
 });
 
 describe('r2api', () => {
+  describe('instance', () => {
+    it('should return instance without route and model', (done) => {
+      const { authMiddleware, aclMiddleware, getRoute, postRoute, putRoute, deleteRoute } = api(app);
+      expect(authMiddleware).to.not.equal(undefined);
+      expect(aclMiddleware).to.not.equal(undefined);
+      expect(getRoute).to.not.equal(undefined);
+      expect(postRoute).to.not.equal(undefined);
+      expect(putRoute).to.not.equal(undefined);
+      expect(deleteRoute).to.not.equal(undefined);
+      done();
+    });
+  });
+
   describe('endpoints', () => {
     before((done) => {
       request.agent(app.server);
