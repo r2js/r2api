@@ -1,7 +1,7 @@
 {
   "name": "r2api",
   "description": "REST API service for r2js. Create REST API endpoints from Mongoose models",
-  "version": "1.0.13",
+  "version": "1.0.14",
   "author": "Selçuk Fatih Sevinç",
   "license": "MIT",
   "engines": {
@@ -10,6 +10,7 @@
   "dependencies": {
     "debug": "^2.6.3",
     "dotty": "0.0.2",
+    "querymen": "^2.1.3",
     "underscore": "^1.8.3"
   },
   "devDependencies": {
@@ -22,9 +23,9 @@
     "mocha": "^3.2.0",
     "r2acl": "^1.0.1",
     "r2base": "^1.0.11",
-    "r2middleware": "^1.0.2",
+    "r2middleware": "^1.0.5",
     "r2mongoose": "^1.0.3",
-    "r2query": "^1.0.8",
+    "r2query": "^1.0.11",
     "r2system": "^1.0.5",
     "supertest": "^3.0.0"
   },
@@ -48,7 +49,7 @@
     "authorization"
   ],
   "scripts": {
-    "test": "mocha"
+    "test": "NODE_ENV=tdd mocha;"
   },
   "repository": {
     "type": "git",

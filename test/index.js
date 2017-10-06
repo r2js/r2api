@@ -6,6 +6,7 @@ const r2query = require('r2query');
 const r2acl = require('r2acl');
 const r2system = require('r2system');
 const r2middleware = require('r2middleware');
+const q = require('querymen');
 const api = require('../index');
 
 const expect = chai.expect;
@@ -14,6 +15,13 @@ process.chdir(__dirname);
 const testMiddleware = (req, res, next) => {
   next();
 };
+
+const schema = new q.Schema({
+  slug: String,
+  qType: { type: String, enum: ['all', 'allTotal', 'one', 'total'] },
+  limit: { type: Number, max: 100 },
+  sort: '_id',
+});
 
 const app = r2base();
 app.start()
@@ -26,7 +34,8 @@ app.start()
   .serve(api, 'TestApi', {
     route: '/api/o/test',
     model: 'test',
-    beforeRoute: [testMiddleware]
+    beforeRoute: [testMiddleware],
+    schema,
   })
   .local('lib/error.js')
   .into(app);
@@ -359,17 +368,15 @@ describe('r2api', () => {
         });
     });
 
-    it('GET /api/o/test should return 200, query params = eq, gte, lt, in, ne', (done) => {
+    it('GET /api/o/test should return 400, query type = unknown', (done) => {
       request(app)
-        .get('/api/o/test')
-        .query('qType=allTotal&slug=params&num1>=1&num1<5&num2=200,404&isEnabled!=y')
-        .query({ filter: '{"name":"Project Title 1000"}' })
-        .expect(200)
+        .get('/api/o/test?qType=unknown&slug=project-title-100')
+        .expect(400)
         .end((err, res) => {
-          expect(res.body.name).to.equal('ok');
-          expect(res.body.code).to.equal(200);
-          expect(res.body.data.total).to.equal(1);
-          expect(res.body.data.rows[0].name).to.equal('Project Title 1000');
+          expect(res.body.name).to.equal('badRequest');
+          expect(res.body.code).to.equal(400);
+          expect(res.body.message.name).to.equal('queryError');
+          expect(res.body.message.errors.message).to.equal('qType must be one of: all, allTotal, one, total');
           done();
         });
     });
