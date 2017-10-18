@@ -1,5 +1,4 @@
 const _ = require('underscore');
-const q = require('querymen');
 const log = require('debug')('r2:api');
 const libRoutes = require('./lib/routes');
 const libAuthMiddleware = require('./lib/authMiddleware');
@@ -10,7 +9,7 @@ module.exports = function Api(app, options = {}) {
     return false;
   }
 
-  const { route, model, aclName, jwt, beforeRoute = [], schema = {} } = options;
+  const { route, model, aclName, jwt, beforeRoute = [] } = options;
   const jwtConfig = jwt || app.config('jwt');
   if (!jwtConfig) {
     return log('jwt config not found!');
@@ -38,17 +37,13 @@ module.exports = function Api(app, options = {}) {
 
   const routes = ['get', 'post', 'put', 'delete'].reduce((acc, curr) => {
     const copyStack = [...stack];
-    if (curr === 'get') {
-      copyStack.push(q.middleware(schema));
-    }
-
     return Object.assign(acc, {
       [`${curr}Route`]: _.partial.apply(null, [app[curr]].concat(copyStack)).bind(app),
     });
   }, {});
 
   if (route && model) {
-    libRoutes(app)(mongoose.model(model), route, routes);
+    libRoutes(app)(mongoose.model(model), route, routes, options);
   }
 
   return Object.assign({ authMiddleware, aclMiddleware }, routes);

@@ -16,12 +16,14 @@ const testMiddleware = (req, res, next) => {
   next();
 };
 
-const schema = new q.Schema({
-  slug: String,
-  qType: { type: String, enum: ['all', 'allTotal', 'one', 'total'] },
-  limit: { type: Number, max: 100 },
-  sort: '_id',
-});
+const schema = () => {
+  return new q.Schema({
+    slug: String,
+    qType: { type: String, enum: ['all', 'allTotal', 'one', 'total'] },
+    limit: { type: Number, max: 100 },
+    sort: '_id',
+  });
+};
 
 const app = r2base();
 app.start()
@@ -36,6 +38,11 @@ app.start()
     model: 'test',
     beforeRoute: [testMiddleware],
     schema,
+  })
+  .serve(api, 'TestApi2', {
+    route: '/api/o/test2',
+    model: 'test',
+    beforeRoute: [testMiddleware],
   })
   .local('lib/error.js')
   .into(app);
@@ -377,6 +384,19 @@ describe('r2api', () => {
           expect(res.body.code).to.equal(400);
           expect(res.body.message.name).to.equal('queryError');
           expect(res.body.message.errors.message).to.equal('qType must be one of: all, allTotal, one, total');
+          done();
+        });
+    });
+
+    it('GET /api/o/test2 should return 400, undefined schema', (done) => {
+      request(app)
+        .get('/api/o/test2')
+        .expect(400)
+        .end((err, res) => {
+          expect(res.body.name).to.equal('badRequest');
+          expect(res.body.code).to.equal(400);
+          expect(res.body.message.name).to.equal('queryError');
+          expect(res.body.message.errors).to.equal('query schema not found!');
           done();
         });
     });
